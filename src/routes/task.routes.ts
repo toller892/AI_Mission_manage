@@ -6,10 +6,10 @@ import {
   updateTask,
   deleteTask,
   addComment,
-} from '../controllers/task.controller.js';
-import { authenticate } from '../middleware/auth.js';
+} from '../controllers/task.controller';
+import { authenticate } from '../middleware/auth';
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require authentication
 router.use(authenticate);

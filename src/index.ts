@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import { config } from './config/env.js';
-import authRoutes from './routes/auth.routes.js';
-import taskRoutes from './routes/task.routes.js';
-import userRoutes from './routes/user.routes.js';
+import { config } from './config/env';
+import authRoutes from './routes/auth.routes';
+import taskRoutes from './routes/task.routes';
+import userRoutes from './routes/user.routes';
 
 const app = express();
 

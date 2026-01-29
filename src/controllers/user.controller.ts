@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
+import { db } from '../db/index';
+import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { AuthRequest } from '../middleware/auth.js';
+import { AuthRequest } from '../middleware/auth';
 
 export const getUsers = async (req: AuthRequest, res: Response) => {
   try {

@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
+import { db } from '../db/index';
+import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
-import { hashPassword, comparePassword } from '../utils/password.js';
-import { generateToken } from '../utils/jwt.js';
-import { AuthRequest } from '../middleware/auth.js';
+import { hashPassword, comparePassword } from '../utils/password';
+import { generateToken } from '../utils/jwt';
+import { AuthRequest } from '../middleware/auth';
 
 export const register = async (req: Request, res: Response) => {
   try {

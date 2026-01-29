@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { db } from '../db/index.js';
-import { tasks, taskAssignees, taskComments, taskHistory, users } from '../db/schema.js';
+import { db } from '../db/index';
+import { tasks, taskAssignees, taskComments, taskHistory, users } from '../db/schema';
 import { eq, desc, and, inArray } from 'drizzle-orm';
-import { AuthRequest } from '../middleware/auth.js';
+import { AuthRequest } from '../middleware/auth';
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
