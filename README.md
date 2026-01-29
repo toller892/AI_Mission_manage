@@ -1,91 +1,78 @@
-# AI Mission 任务管理系统
+# AI Mission 任务管理系统 - 后端服务
 
-一个功能完善的任务管理平台，用于替代 Google Sheet 进行团队任务管理。
-
-## 功能特性
-
-- ✅ 任务的增删改查（CRUD）
-- ✅ 用户认证与权限管理
-- ✅ 任务分配与协作
-- ✅ 任务评论与历史记录
-- ✅ 多视图展示（看板、列表、日历）
-- 🚧 AI 智能任务调度（规划中）
+这是 AI Mission 任务管理系统的后端 API 服务。
 
 ## 技术栈
 
-### 前端
-- React 18 + TypeScript
-- Vite
-- TailwindCSS + Ant Design
-- React Query + Zustand
-- Axios
-
-### 后端
 - Node.js 22 + TypeScript
 - Express.js
 - Drizzle ORM
 - PostgreSQL
 - JWT 认证
 
-## 项目结构
+## 环境变量
 
-```
-AI_Mission_manage/
-├── frontend/          # 前端应用
-├── backend/           # 后端 API 服务
-├── docs/              # 项目文档
-└── README.md
-```
-
-## 快速开始
-
-### 前置要求
-
-- Node.js 22+
-- PostgreSQL 14+
-- pnpm
-
-### 安装依赖
-
-```bash
-# 安装后端依赖
-cd backend
-pnpm install
-
-# 安装前端依赖
-cd ../frontend
-pnpm install
-```
-
-### 配置环境变量
-
-在 `backend` 目录创建 `.env` 文件：
+在部署前需要配置以下环境变量：
 
 ```env
 DATABASE_URL=postgres://n8n:AViDmp1uEVWqiOF3KjFU@tonytest-n8n.cgb5t3jqdx7r.us-east-1.rds.amazonaws.com/n8n
-JWT_SECRET=your-secret-key
+JWT_SECRET=your-random-secret-key
 PORT=3000
+NODE_ENV=production
 ```
 
-### 运行项目
+## Zeabur 部署
+
+1. 在 Zeabur 创建新服务
+2. 选择 Git 仓库：`toller892/AI_Mission_manage`
+3. 选择分支：`deploy-backend`
+4. 配置上述环境变量
+5. 点击部署
+
+## 本地开发
 
 ```bash
-# 启动后端
-cd backend
+# 安装依赖
+pnpm install
+
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件
+
+# 开发模式
 pnpm dev
 
-# 启动前端
-cd frontend
-pnpm dev
+# 构建
+pnpm build
+
+# 生产模式
+pnpm start
 ```
 
-## 部署
+## API 端点
 
-本项目支持在 Zeabur 上一键部署。
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/login` - 用户登录
+- `GET /api/auth/me` - 获取当前用户信息
+- `GET /api/tasks` - 获取任务列表
+- `POST /api/tasks` - 创建任务
+- `GET /api/tasks/:id` - 获取任务详情
+- `PUT /api/tasks/:id` - 更新任务
+- `DELETE /api/tasks/:id` - 删除任务
+- `POST /api/tasks/:id/comments` - 添加评论
+- `GET /api/users` - 获取用户列表
+- `GET /api/users/:id` - 获取用户详情
+- `PUT /api/users/:id` - 更新用户信息
 
-## 开发文档
+## 数据库表
 
-详细的开发文档请查看 `docs/development_document.md`
+所有表使用 `ai_mission_` 前缀：
+
+- `ai_mission_users` - 用户表
+- `ai_mission_tasks` - 任务表
+- `ai_mission_task_assignees` - 任务分配表
+- `ai_mission_task_comments` - 任务评论表
+- `ai_mission_task_history` - 任务历史表
 
 ## License
 
