@@ -2,12 +2,12 @@ import { pgTable, serial, varchar, text, timestamp, integer, date, pgEnum } from
 import { relations } from 'drizzle-orm';
 
 // Enums
-export const userRoleEnum = pgEnum('user_role', ['admin', 'member', 'pa']);
-export const taskStatusEnum = pgEnum('task_status', ['pending', 'in_progress', 'completed', 'cancelled']);
-export const taskPriorityEnum = pgEnum('task_priority', ['low', 'medium', 'high', 'urgent']);
+export const userRoleEnum = pgEnum('ai_mission_user_role', ['admin', 'member', 'pa']);
+export const taskStatusEnum = pgEnum('ai_mission_task_status', ['pending', 'in_progress', 'completed', 'cancelled']);
+export const taskPriorityEnum = pgEnum('ai_mission_task_priority', ['low', 'medium', 'high', 'urgent']);
 
 // Users table
-export const users = pgTable('users', {
+export const users = pgTable('ai_mission_users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 50 }).notNull().unique(),
   email: varchar('email', { length: 100 }).notNull().unique(),
@@ -20,7 +20,7 @@ export const users = pgTable('users', {
 });
 
 // Tasks table
-export const tasks = pgTable('tasks', {
+export const tasks = pgTable('ai_mission_tasks', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 255 }).notNull(),
   description: text('description'),
@@ -40,13 +40,13 @@ export const tasks = pgTable('tasks', {
 });
 
 // Task assignees (many-to-many)
-export const taskAssignees = pgTable('task_assignees', {
+export const taskAssignees = pgTable('ai_mission_task_assignees', {
   taskId: integer('task_id').references(() => tasks.id, { onDelete: 'cascade' }).notNull(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 });
 
 // Task comments
-export const taskComments = pgTable('task_comments', {
+export const taskComments = pgTable('ai_mission_task_comments', {
   id: serial('id').primaryKey(),
   taskId: integer('task_id').references(() => tasks.id, { onDelete: 'cascade' }).notNull(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
@@ -55,7 +55,7 @@ export const taskComments = pgTable('task_comments', {
 });
 
 // Task history
-export const taskHistory = pgTable('task_history', {
+export const taskHistory = pgTable('ai_mission_task_history', {
   id: serial('id').primaryKey(),
   taskId: integer('task_id').references(() => tasks.id, { onDelete: 'cascade' }).notNull(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
