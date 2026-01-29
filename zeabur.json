@@ -1,0 +1,32 @@
+{
+  "name": "AI Mission",
+  "services": [
+    {
+      "name": "backend",
+      "path": "./backend",
+      "build": {
+        "type": "nodejs",
+        "buildCommand": "pnpm install && pnpm build",
+        "startCommand": "node dist/index.js"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "ports": [
+        {
+          "port": 3000,
+          "protocol": "http"
+        }
+      ]
+    },
+    {
+      "name": "frontend",
+      "path": "./frontend",
+      "build": {
+        "type": "static",
+        "buildCommand": "pnpm install && pnpm build",
+        "outputDirectory": "dist"
+      }
+    }
+  ]
+}
