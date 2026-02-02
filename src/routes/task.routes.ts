@@ -6,6 +6,7 @@ import {
   updateTask,
   deleteTask,
   addComment,
+  getDashboardStats,
 } from '../controllers/task.controller';
 import { authenticate } from '../middleware/auth';
 
@@ -14,6 +15,7 @@ const router: Router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+router.get('/dashboard', getDashboardStats);
 router.get('/', getTasks);
 router.get('/:id', getTaskById);
 router.post('/', createTask);

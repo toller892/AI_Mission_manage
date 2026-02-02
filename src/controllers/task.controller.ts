@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { db } from '../db/index';
 import { tasks, taskAssignees, taskComments, taskHistory, users } from '../db/schema';
-import { eq, desc, and, inArray } from 'drizzle-orm';
+import { eq, desc, and, inArray, count, sql } from 'drizzle-orm';
 import { AuthRequest } from '../middleware/auth';
 
 export const getTasks = async (req: AuthRequest, res: Response) => {
@@ -277,6 +277,89 @@ export const addComment = async (req: AuthRequest, res: Response) => {
     res.status(201).json(newComment);
   } catch (error) {
     console.error('Add comment error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Dashboard statistics
+export const getDashboardStats = async (req: AuthRequest, res: Response) => {
+  try {
+    // Get task counts by status
+    const statusCounts = await db
+      .select({
+        status: tasks.status,
+        count: count(),
+      })
+      .from(tasks)
+      .groupBy(tasks.status);
+
+    // Get task counts by priority
+    const priorityCounts = await db
+      .select({
+        priority: tasks.priority,
+        count: count(),
+      })
+      .from(tasks)
+      .groupBy(tasks.priority);
+
+    // Get total tasks
+    const [totalResult] = await db.select({ count: count() }).from(tasks);
+
+    // Get tasks by assignee
+    const assigneeCounts = await db
+      .select({
+        userId: taskAssignees.userId,
+        username: users.username,
+        fullName: users.fullName,
+        count: count(),
+      })
+      .from(taskAssignees)
+      .leftJoin(users, eq(taskAssignees.userId, users.id))
+      .groupBy(taskAssignees.userId, users.username, users.fullName);
+
+    // Get recent tasks (last 10)
+    const recentTasks = await db
+      .select({
+        id: tasks.id,
+        title: tasks.title,
+        status: tasks.status,
+        priority: tasks.priority,
+        createdDate: tasks.createdDate,
+        ticketUrl: tasks.ticketUrl,
+      })
+      .from(tasks)
+      .orderBy(desc(tasks.createdAt))
+      .limit(10);
+
+    // Get overdue tasks (pending/in_progress with past due date)
+    const today = new Date().toISOString().split('T')[0];
+
+    // Calculate completion rate
+    const completedCount = statusCounts.find(s => s.status === 'completed')?.count || 0;
+    const totalCount = totalResult?.count || 0;
+    const completionRate = totalCount > 0 ? Math.round((Number(completedCount) / Number(totalCount)) * 100) : 0;
+
+    res.json({
+      total: totalResult?.count || 0,
+      completionRate,
+      byStatus: statusCounts.reduce((acc, item) => {
+        acc[item.status] = Number(item.count);
+        return acc;
+      }, {} as Record<string, number>),
+      byPriority: priorityCounts.reduce((acc, item) => {
+        acc[item.priority] = Number(item.count);
+        return acc;
+      }, {} as Record<string, number>),
+      byAssignee: assigneeCounts.map(a => ({
+        userId: a.userId,
+        username: a.username,
+        fullName: a.fullName,
+        count: Number(a.count),
+      })),
+      recentTasks,
+    });
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
