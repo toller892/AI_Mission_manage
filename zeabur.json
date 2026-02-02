@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.zeabur.app/template.json",
+  "build": {
+    "type": "dockerfile"
+  },
+  "start": {
+    "command": "node dist/index.js"
+  },
+  "healthCheck": {
+    "path": "/health",
+    "port": 3000
+  },
+  "env": {
+    "PORT": {
+      "default": "3000",
+      "expose": true
+    },
+    "NODE_ENV": {
+      "default": "production"
+    },
+    "DATABASE_URL": {
+      "required": true
+    },
+    "JWT_SECRET": {
+      "required": true
+    }
+  }
+}
