@@ -155,6 +155,46 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Reset user password (admin can reset any, user can reset own)
+export const resetPassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { password } = req.body;
+
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    // Check permission: admin can reset any, user can only reset own
+    if (req.user.userId !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    const [updatedUser] = await db.update(users)
+      .set({
+        passwordHash,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning({ id: users.id, username: users.username });
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 // Get user statistics
 export const getUserStats = async (req: AuthRequest, res: Response) => {
   try {
