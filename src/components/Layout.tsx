@@ -1,14 +1,31 @@
-import { Layout as AntLayout, Menu, Avatar, Dropdown } from 'antd';
+import { useEffect } from 'react';
+import { Layout as AntLayout, Menu, Avatar, Dropdown, Spin } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { UserOutlined, LogoutOutlined, CheckSquareOutlined, DashboardOutlined, TeamOutlined } from '@ant-design/icons';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
+import { authApi } from '../api/services';
 
 const { Header, Content } = AntLayout;
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuthStore();
+  const { user, token, setAuth, logout } = useAuthStore();
+
+  // 如果有 token 但没有 user，获取用户信息
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: authApi.getMe,
+    enabled: !!token && !user,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (userData && token) {
+      setAuth(userData, token);
+    }
+  }, [userData, token, setAuth]);
 
   const handleLogout = () => {
     logout();
@@ -61,7 +78,9 @@ export default function Layout() {
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <div className="flex items-center cursor-pointer">
             <Avatar icon={<UserOutlined />} />
-            <span className="ml-2">{user?.fullName || user?.username}</span>
+            <span className="ml-2">
+              {isLoading ? <Spin size="small" /> : (user?.fullName || user?.username)}
+            </span>
           </div>
         </Dropdown>
       </Header>
