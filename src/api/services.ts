@@ -91,6 +91,10 @@ export const userApi = {
     await apiClient.delete(`/api/users/${id}`);
   },
 
+  resetPassword: async (id: number, password: string): Promise<void> => {
+    await apiClient.put(`/api/users/${id}/password`, { password });
+  },
+
   getStats: async () => {
     const response = await apiClient.get('/api/users/stats');
     return response.data;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Table, Card, Tag, Button, Modal, Form, Input, Select, message, Space, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Card, Tag, Button, Modal, Form, Input, Select, message, Space, Popconfirm, Divider } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined } from '@ant-design/icons';
 import { userApi } from '../api/services';
 import { useAuthStore } from '../store/authStore';
 import type { User } from '../types';
@@ -22,6 +22,7 @@ export default function Users() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+  const [passwordForm] = Form.useForm();
   const queryClient = useQueryClient();
   const currentUser = useAuthStore((state) => state.user);
 
@@ -68,6 +69,17 @@ export default function Users() {
     },
   });
 
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ id, password }: { id: number; password: string }) => userApi.resetPassword(id, password),
+    onSuccess: () => {
+      message.success('密码重置成功');
+      passwordForm.resetFields();
+    },
+    onError: () => {
+      message.error('密码重置失败');
+    },
+  });
+
   const handleSubmit = async (values: any) => {
     if (editingUser) {
       updateMutation.mutate({ id: editingUser.id, data: values });
@@ -79,13 +91,27 @@ export default function Users() {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     form.setFieldsValue(user);
+    passwordForm.resetFields();
     setIsModalOpen(true);
   };
 
   const handleAdd = () => {
     setEditingUser(null);
     form.resetFields();
+    passwordForm.resetFields();
     setIsModalOpen(true);
+  };
+
+  const handleResetPassword = async (values: { newPassword: string }) => {
+    if (editingUser) {
+      resetPasswordMutation.mutate({ id: editingUser.id, password: values.newPassword });
+    }
+  };
+
+  const canResetPassword = (targetUser: User) => {
+    if (!currentUser) return false;
+    // 管理员可以重置任何人的密码，普通用户只能重置自己的
+    return currentUser.role === 'admin' || currentUser.id === targetUser.id;
   };
 
   const columns = [
@@ -177,6 +203,7 @@ export default function Users() {
           setIsModalOpen(false);
           setEditingUser(null);
           form.resetFields();
+          passwordForm.resetFields();
         }}
         footer={null}
       >
@@ -224,6 +251,35 @@ export default function Users() {
             </Space>
           </Form.Item>
         </Form>
+
+        {editingUser && canResetPassword(editingUser) && (
+          <>
+            <Divider />
+            <Form form={passwordForm} layout="vertical" onFinish={handleResetPassword}>
+              <Form.Item
+                name="newPassword"
+                label={<span><LockOutlined /> 重置密码</span>}
+                rules={[
+                  { required: true, message: '请输入新密码' },
+                  { min: 6, message: '密码至少6个字符' },
+                ]}
+              >
+                <Input.Password placeholder="输入新密码" />
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  type="primary"
+                  danger
+                  htmlType="submit"
+                  loading={resetPasswordMutation.isPending}
+                  icon={<LockOutlined />}
+                >
+                  重置密码
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        )}
       </Modal>
     </div>
   );
