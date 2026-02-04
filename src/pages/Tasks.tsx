@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Table, Button, Tag, Space, Modal, Form, Input, Select, DatePicker, message, Card, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined } from '@ant-design/icons';
+import { Table, Button, Tag, Space, Modal, Form, Input, Select, DatePicker, message, Card, Popconfirm, Row, Col } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, LinkOutlined, SearchOutlined } from '@ant-design/icons';
 import { taskApi, userApi } from '../api/services';
 import type { Task, CreateTaskRequest, UpdateTaskRequest } from '../types';
 import dayjs from 'dayjs';
@@ -39,6 +39,8 @@ export default function Tasks() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [form] = Form.useForm();
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [selectedAssignee, setSelectedAssignee] = useState<number | undefined>(undefined);
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks'],
@@ -49,6 +51,22 @@ export default function Tasks() {
     queryKey: ['users'],
     queryFn: userApi.getUsers,
   });
+
+  // 根据搜索条件过滤任务
+  const filteredTasks = useMemo(() => {
+    if (!tasks) return [];
+    return tasks.filter((task) => {
+      // 标题关键词搜索
+      const matchesKeyword = !searchKeyword ||
+        task.title.toLowerCase().includes(searchKeyword.toLowerCase());
+
+      // 负责人筛选
+      const matchesAssignee = !selectedAssignee ||
+        task.assignees?.some((a: any) => a.id === selectedAssignee);
+
+      return matchesKeyword && matchesAssignee;
+    });
+  }, [tasks, searchKeyword, selectedAssignee]);
 
   const createMutation = useMutation({
     mutationFn: taskApi.createTask,
@@ -234,9 +252,40 @@ export default function Tasks() {
           </Button>
         }
       >
+        <Row gutter={16} style={{ marginBottom: 16 }}>
+          <Col span={8}>
+            <Input
+              placeholder="搜索任务标题..."
+              prefix={<SearchOutlined />}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col span={6}>
+            <Select
+              placeholder="筛选负责人"
+              value={selectedAssignee}
+              onChange={setSelectedAssignee}
+              allowClear
+              style={{ width: '100%' }}
+            >
+              {users?.map((user) => (
+                <Select.Option key={user.id} value={user.id}>
+                  {user.fullName || user.username}
+                </Select.Option>
+              ))}
+            </Select>
+          </Col>
+          <Col>
+            <Button onClick={() => { setSearchKeyword(''); setSelectedAssignee(undefined); }}>
+              重置
+            </Button>
+          </Col>
+        </Row>
         <Table
           columns={columns}
-          dataSource={tasks}
+          dataSource={filteredTasks}
           rowKey="id"
           loading={isLoading}
           pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
